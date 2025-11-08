@@ -37,7 +37,7 @@ echo "📝 Environment name: $ENV_NAME"
 
 # Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
+PROJECT_ROOT="$(dirname  "$SCRIPT_DIR")"
 
 echo "📁 Project root: $PROJECT_ROOT"
 echo "📁 Script directory: $SCRIPT_DIR"
@@ -53,7 +53,7 @@ fi
 echo "🔧 Creating new environment from environment_deploy.yaml..."
 echo "   This will install: PyTorch (CUDA), NumPy, SciPy, ONNX Runtime, and all other dependencies..."
 cd "$PROJECT_ROOT"
-conda env create -f holomotion/environment_deploy.yaml -n "$ENV_NAME"
+conda env create -f "$PROJECT_ROOT"/environments/environment_deploy.yaml -n "$ENV_NAME"
 
 echo "✅ Conda environment with all dependencies created successfully!"
 
