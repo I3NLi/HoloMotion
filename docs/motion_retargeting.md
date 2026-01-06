@@ -8,7 +8,7 @@ Before running the motion retargeting pipeline, ensure you have:
 
 ### 1. Environment Setup
 
-Please make sure the smplx and GMR are properly installed according to [[environment setup doc](docs/environment_setup.md)].
+Please make sure the smplx and GMR are properly installed according to [[environment setup doc](./environment_setup.md)].
 
 ### 2. Data Preparation
 
@@ -37,7 +37,6 @@ Check data paths in the configuration scripts:
 - `holomotion/scripts/motion_retargeting/run_motion_retargeting_gmr.sh`
 
 ## Quick Start
-
 ### 1. Motion Retargeting
 
 ```bash
