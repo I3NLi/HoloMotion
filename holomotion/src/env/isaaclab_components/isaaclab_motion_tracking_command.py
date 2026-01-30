@@ -589,22 +589,31 @@ class RefMotionCommand(CommandTerm):
     def _get_ref_state_array(
         self,
         base_key: str,
-        prefix: str = "",
+        prefix: str = "ref_",
     ) -> torch.Tensor:
         """Return ref_motion_state[base_key] or prefixed variant when present.
 
         Args:
             base_key: Base key in ref_motion_state (e.g. \"dof_pos\", \"root_pos\").
-            prefix: Optional logical prefix (e.g. \"\", \"ref_\", \"ft_ref_\", \"robot_\").
+            prefix: Logical prefix (e.g. \"ref_\", \"ft_ref_\", \"robot_\").
 
         Returns:
             Tensor stored under the selected key with all non-batch dimensions unchanged.
         """
-        if prefix:
-            full_key = f"{prefix}{base_key}"
-            if full_key in self.ref_motion_state:
-                return self.ref_motion_state[full_key]
-        return self.ref_motion_state[base_key]
+        if prefix == "":
+            raise ValueError(
+                "Unprefixed reference keys are no longer supported. "
+                "Use prefixed datasets (e.g., ref_, ft_ref_)."
+            )
+        full_key = f"{prefix}{base_key}"
+        if full_key in self.ref_motion_state:
+            return self.ref_motion_state[full_key]
+        else:
+            raise ValueError(
+                f"Key with prefix {prefix} not found in dataset, maybe your dataset "
+                f"is processed with the previous version of HoloMotion. "
+                f"Please rerun the gmr_to_holomotion or holomotion_preprocess script to process the dataset again !"
+            )
 
     def _uniform_sample_ref_start_frames(self, env_ids: torch.Tensor):
         """Uniformly sample start frames within cached windows for env_ids.
@@ -635,48 +644,48 @@ class RefMotionCommand(CommandTerm):
 
     def get_ref_motion_dof_pos_fut(
         self,
-        prefix: str = "",
+        prefix: str = "ref_",
     ) -> torch.Tensor:
         base = self._get_ref_state_array("dof_pos", prefix)
         return base[:, 1:, ...][..., self.urdf2sim_dof_idx]
 
     def get_ref_motion_dof_vel_fut(
         self,
-        prefix: str = "",
+        prefix: str = "ref_",
     ) -> torch.Tensor:
         base = self._get_ref_state_array("dof_vel", prefix)
         return base[:, 1:, ...][..., self.urdf2sim_dof_idx]
 
     def get_ref_motion_root_global_pos_fut(
         self,
-        prefix: str = "",
+        prefix: str = "ref_",
     ) -> torch.Tensor:
         base = self._get_ref_state_array("root_pos", prefix)
         return base[:, 1:, ...] + self._env_origins[:, None, :]
 
     def get_ref_motion_root_global_rot_quat_xyzw_fut(
         self,
-        prefix: str = "",
+        prefix: str = "ref_",
     ) -> torch.Tensor:
         return self._get_ref_state_array("root_rot", prefix)[:, 1:, ...]
 
     def get_ref_motion_root_global_lin_vel_fut(
         self,
-        prefix: str = "",
+        prefix: str = "ref_",
     ) -> torch.Tensor:
         base = self._get_ref_state_array("root_vel", prefix)
         return base[:, 1:, ...]
 
     def get_ref_motion_root_global_ang_vel_fut(
         self,
-        prefix: str = "",
+        prefix: str = "ref_",
     ) -> torch.Tensor:
         base = self._get_ref_state_array("root_ang_vel", prefix)
         return base[:, 1:, ...]
 
     def get_ref_motion_bodylink_global_pos_fut(
         self,
-        prefix: str = "",
+        prefix: str = "ref_",
     ) -> torch.Tensor:
         base = self._get_ref_state_array("rg_pos", prefix)
         return (
@@ -686,35 +695,35 @@ class RefMotionCommand(CommandTerm):
 
     def get_ref_motion_bodylink_global_rot_xyzw_fut(
         self,
-        prefix: str = "",
+        prefix: str = "ref_",
     ) -> torch.Tensor:
         base = self._get_ref_state_array("rb_rot", prefix)
         return base[:, 1:, ...][..., self.urdf2sim_body_idx, :]
 
     def get_ref_motion_bodylink_global_lin_vel_fut(
         self,
-        prefix: str = "",
+        prefix: str = "ref_",
     ) -> torch.Tensor:
         base = self._get_ref_state_array("body_vel", prefix)
         return base[:, 1:, ...][..., self.urdf2sim_body_idx, :]
 
     def get_ref_motion_bodylink_global_ang_vel_fut(
         self,
-        prefix: str = "",
+        prefix: str = "ref_",
     ) -> torch.Tensor:
         base = self._get_ref_state_array("body_ang_vel", prefix)
         return base[:, 1:, ...][..., self.urdf2sim_body_idx, :]
 
     def get_ref_motion_dof_pos_cur(
         self,
-        prefix: str = "",
+        prefix: str = "ref_",
     ) -> torch.Tensor:
         base = self._get_ref_state_array("dof_pos", prefix)
         return base[:, 0, ...][..., self.urdf2sim_dof_idx]
 
     def get_ref_motion_dof_pos_cur_urdf_order(
         self,
-        prefix: str = "",
+        prefix: str = "ref_",
     ) -> torch.Tensor:
         base = self._get_ref_state_array("dof_pos", prefix)
         return base[:, 0, ...]
@@ -725,7 +734,7 @@ class RefMotionCommand(CommandTerm):
 
     def get_ref_motion_dof_vel_cur(
         self,
-        prefix: str = "",
+        prefix: str = "ref_",
     ) -> torch.Tensor:
         base = self._get_ref_state_array("dof_vel", prefix)
         return base[:, 0, ...][..., self.urdf2sim_dof_idx]
@@ -736,27 +745,27 @@ class RefMotionCommand(CommandTerm):
 
     def get_ref_motion_dof_vel_cur_urdf_order(
         self,
-        prefix: str = "",
+        prefix: str = "ref_",
     ) -> torch.Tensor:
         base = self._get_ref_state_array("dof_vel", prefix)
         return base[:, 0, ...]
 
     def get_ref_motion_root_global_pos_cur(
         self,
-        prefix: str = "",
+        prefix: str = "ref_",
     ) -> torch.Tensor:
         base = self._get_ref_state_array("root_pos", prefix)
         return base[:, 0, ...] + self._env_origins
 
     def get_ref_motion_root_global_rot_quat_xyzw_cur(
         self,
-        prefix: str = "",
+        prefix: str = "ref_",
     ) -> torch.Tensor:
         return self._get_ref_state_array("root_rot", prefix)[:, 0, ...]
 
     def get_ref_motion_root_global_rot_quat_wxyz_cur(
         self,
-        prefix: str = "",
+        prefix: str = "ref_",
     ) -> torch.Tensor:
         return self.get_ref_motion_root_global_rot_quat_xyzw_cur(prefix=prefix)[
             ..., [3, 0, 1, 2]
@@ -764,7 +773,7 @@ class RefMotionCommand(CommandTerm):
 
     def get_ref_motion_root_global_lin_vel_cur(
         self,
-        prefix: str = "",
+        prefix: str = "ref_",
     ) -> torch.Tensor:
         base = self._get_ref_state_array("root_vel", prefix)
         return base[:, 0, ...]
@@ -775,14 +784,14 @@ class RefMotionCommand(CommandTerm):
 
     def get_ref_motion_root_global_ang_vel_cur(
         self,
-        prefix: str = "",
+        prefix: str = "ref_",
     ) -> torch.Tensor:
         base = self._get_ref_state_array("root_ang_vel", prefix)
         return base[:, 0, ...]
 
     def get_ref_motion_bodylink_global_pos_cur(
         self,
-        prefix: str = "",
+        prefix: str = "ref_",
     ) -> torch.Tensor:
         base = self._get_ref_state_array("rg_pos", prefix)
         return (
@@ -792,28 +801,28 @@ class RefMotionCommand(CommandTerm):
 
     def get_ref_motion_bodylink_global_pos_cur_urdf_order(
         self,
-        prefix: str = "",
+        prefix: str = "ref_",
     ) -> torch.Tensor:
         base = self._get_ref_state_array("rg_pos", prefix)
         return base[:, 0, ...] + self._env_origins[:, None, :]
 
     def get_ref_motion_bodylink_global_rot_wxyz_cur(
         self,
-        prefix: str = "",
+        prefix: str = "ref_",
     ) -> torch.Tensor:
         rot_xyzw = self.get_ref_motion_bodylink_global_rot_xyzw_cur(prefix=prefix)
         return rot_xyzw[..., [3, 0, 1, 2]]
 
     def get_ref_motion_bodylink_global_rot_xyzw_cur(
         self,
-        prefix: str = "",
+        prefix: str = "ref_",
     ) -> torch.Tensor:
         base = self._get_ref_state_array("rb_rot", prefix)
         return base[:, 0, ...][..., self.urdf2sim_body_idx, :]
 
     def get_ref_motion_bodylink_global_rot_xyzw_cur_urdf_order(
         self,
-        prefix: str = "",
+        prefix: str = "ref_",
     ) -> torch.Tensor:
         base = self._get_ref_state_array("rb_rot", prefix)
         return base[:, 0, ...]
@@ -840,28 +849,28 @@ class RefMotionCommand(CommandTerm):
 
     def get_ref_motion_bodylink_global_lin_vel_cur(
         self,
-        prefix: str = "",
+        prefix: str = "ref_",
     ) -> torch.Tensor:
         base = self._get_ref_state_array("body_vel", prefix)
         return base[:, 0, ...][..., self.urdf2sim_body_idx, :]
 
     def get_ref_motion_bodylink_global_lin_vel_cur_urdf_order(
         self,
-        prefix: str = "",
+        prefix: str = "ref_",
     ) -> torch.Tensor:
         base = self._get_ref_state_array("body_vel", prefix)
         return base[:, 0, ...]
 
     def get_ref_motion_bodylink_global_ang_vel_cur(
         self,
-        prefix: str = "",
+        prefix: str = "ref_",
     ) -> torch.Tensor:
         base = self._get_ref_state_array("body_ang_vel", prefix)
         return base[:, 0, ...][..., self.urdf2sim_body_idx, :]
 
     def get_ref_motion_bodylink_global_ang_vel_cur_urdf_order(
         self,
-        prefix: str = "",
+        prefix: str = "ref_",
     ) -> torch.Tensor:
         base = self._get_ref_state_array("body_ang_vel", prefix)
         return base[:, 0, ...]
@@ -882,21 +891,21 @@ class RefMotionCommand(CommandTerm):
 
     def get_ref_motion_anchor_bodylink_global_pos_cur(
         self,
-        prefix: str = "",
+        prefix: str = "ref_",
     ) -> torch.Tensor:
         pos = self.get_ref_motion_bodylink_global_pos_cur(prefix=prefix)
         return pos[:, self.anchor_bodylink_idx]
 
     def get_ref_motion_anchor_bodylink_global_rot_wxyz_cur(
         self,
-        prefix: str = "",
+        prefix: str = "ref_",
     ) -> torch.Tensor:
         rot = self.get_ref_motion_bodylink_global_rot_wxyz_cur(prefix=prefix)
         return rot[:, self.anchor_bodylink_idx]
 
     def _get_obs_bydmmc_ref_motion(
         self,
-        obs_prefix: str = "",
+        obs_prefix: str = "ref_",
     ) -> torch.Tensor:
         base_pos = self._get_ref_state_array("dof_pos", obs_prefix)[:, 0, ...][
             ..., self.urdf2sim_dof_idx
@@ -911,7 +920,7 @@ class RefMotionCommand(CommandTerm):
 
     def _get_obs_bydmmc_ref_motion_fut(
         self,
-        obs_prefix: str = "",
+        obs_prefix: str = "ref_",
     ) -> torch.Tensor:
         base_pos = self._get_ref_state_array("dof_pos", obs_prefix)[:, 1:, ...][
             ..., self.urdf2sim_dof_idx
@@ -930,7 +939,7 @@ class RefMotionCommand(CommandTerm):
 
     def _get_obs_vr_ref_motion_states(
         self,
-        obs_prefix: str = "",
+        obs_prefix: str = "ref_",
     ) -> torch.Tensor:
         base_pos = self._get_ref_state_array("dof_pos", obs_prefix)[:, 0, ...][
             ..., self.urdf2sim_dof_idx
@@ -950,7 +959,7 @@ class RefMotionCommand(CommandTerm):
 
     def _get_obs_vr_ref_motion_fut(
         self,
-        obs_prefix: str = "",
+        obs_prefix: str = "ref_",
     ) -> torch.Tensor:
         base_pos = self._get_ref_state_array("dof_pos", obs_prefix)[:, 1:, ...][
             ..., self.urdf2sim_dof_idx
@@ -971,7 +980,7 @@ class RefMotionCommand(CommandTerm):
 
     def _get_obs_holomotion_rel_ref_motion_flat(
         self,
-        obs_prefix: str = "",
+        obs_prefix: str = "ref_",
     ) -> torch.Tensor:
         # Gather all needed arrays with obs prefix
         fut_rg_pos = self._get_ref_state_array("rg_pos", obs_prefix)[:, 1:, ...][
@@ -1137,11 +1146,15 @@ class RefMotionCommand(CommandTerm):
         self._align_dof_to_ref(idxs)
 
     def _align_root_to_ref(self, env_ids):
-        root_pos = self.get_ref_motion_root_global_pos_cur().clone()
-        root_rot_xyzw = self.get_ref_motion_root_global_rot_quat_xyzw_cur()
+        root_pos = self.get_ref_motion_root_global_pos_cur(prefix="ref_").clone()
+        root_rot_xyzw = self.get_ref_motion_root_global_rot_quat_xyzw_cur(prefix="ref_")
         root_rot = root_rot_xyzw[..., [3, 0, 1, 2]].clone()
-        root_lin_vel = self.get_ref_motion_root_global_lin_vel_cur().clone()
-        root_ang_vel = self.get_ref_motion_root_global_ang_vel_cur().clone()
+        root_lin_vel = self.get_ref_motion_root_global_lin_vel_cur(
+            prefix="ref_"
+        ).clone()
+        root_ang_vel = self.get_ref_motion_root_global_ang_vel_cur(
+            prefix="ref_"
+        ).clone()
 
         pos_rot_range_list = [
             self.cfg.root_pose_perturb_range.get(key, (0.0, 0.0))
@@ -1196,8 +1209,8 @@ class RefMotionCommand(CommandTerm):
         )
 
     def _align_dof_to_ref(self, env_ids):
-        dof_pos = self.get_ref_motion_dof_pos_cur().clone()
-        dof_vel = self.get_ref_motion_dof_vel_cur().clone()
+        dof_pos = self.get_ref_motion_dof_pos_cur(prefix="ref_").clone()
+        dof_vel = self.get_ref_motion_dof_vel_cur(prefix="ref_").clone()
 
         dof_pos += isaaclab_math.sample_uniform(
             *self.cfg.dof_pos_perturb_range,
